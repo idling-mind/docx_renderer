@@ -18,19 +18,27 @@ Below is a simple example.
 from docx_renderer import DOCXRenderer
 p = DOCXRenderer("template.docx")
 
-someval = "hello"
+someval = "world!"
 def mymethod(abc):
     return f"{abc} " * 5
 
 p.render(
     "output.docx", 
     {
-        "someval": someval, "mymethod": mymethod
+        "variable": someval, "mymethod": mymethod, "myimage": "is_it_worth.png"
     }
 )
 ```
 
 This will replace placeholders in the template document with the provided values.
+
+## Before
+
+![Before](./docs/_src/_static/before.png)
+
+## After
+
+![After](./docs/_src/_static/after.png)
 
 You can define some functions within the document itself by writing Python code in
 the comments section. The variables and functions in this code can be used in the main document.
