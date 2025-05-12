@@ -1,7 +1,7 @@
 from pathlib import Path
 from docx_renderer import DOCXRenderer
 
-p = DOCXRenderer("testdoc.docx")
+p = DOCXRenderer("template.docx")
 
 variable = "world!"
 

@@ -1,3 +1,5 @@
+from docx.shared import Inches, Pt, Cm, Mm, Length
+
 def para_text_replace(para, find_string, replace_string):
     """Function to replace text in a paragraph
 
@@ -126,3 +128,28 @@ def copy_text_frame(source_text_frame, target_text_frame):
                 and hasattr(run.hyperlink, "address")
             ):
                 new_run.hyperlink.address = run.hyperlink.address
+
+def convert_to_length(length: int | str) -> Length:
+    """Convert a length to a Length object.
+
+    Args:
+        length (int | str): Length to convert. Can be an int or a string with a unit.
+
+    Returns:
+        Length: Length object.
+    """
+    if isinstance(length, str):
+        if length.endswith("cm"):
+            return Cm(int(length[:-2]))
+        elif length.endswith("in"):
+            return Inches(int(length[:-2]))
+        elif length.endswith("pt"):
+            return Pt(int(length[:-2]))
+        elif length.endswith("mm"):
+            return Mm(int(length[:-2]))
+        else:
+            raise ValueError(f"Invalid length format: {length}")
+    elif isinstance(length, int):
+        return Length(length)
+    else:
+        raise TypeError(f"Invalid type for length: {type(length)}")

@@ -4,11 +4,12 @@ from PIL import Image
 from docx import Document
 from docx.shared import Pt
 from .exceptions import RenderError
+from .utils import convert_to_length
 
 def image(
     context: dict,
-    width: int | None = None,
-    height: int | None = None,
+    width: int | str | None = None,
+    height: int | str | None = None,
     remove_placeholder: bool = True,
 ):
     """Insert an image into the document at the location of the placeholder.
@@ -18,14 +19,15 @@ def image(
             - result: The result of evaluating the python statement.
             - paragraph: The docx paragraph object where the placeholder is present.
             - document: The output docx document object.
-        preserve_aspect_ratio (bool, optional): Preserve the aspect ratio of the image.
-            Defaults to True.
+        width (int | str | None, optional): Width of the image. Can be an int or a string with a unit.
+            Defaults to None.
+        height (int | str | None, optional): Height of the image. Can be an int or a string with a unit.
+            Defaults to None.
         remove_placeholder (bool, optional): Remove the placeholder after the image is inserted.
             Defaults to True.
-        alignment (str, optional): Alignment of the image. Can be 'left', 'center', 'right'. Defaults to 'left'.
-        crop (dict, optional): Dictionary containing the crop values for the image.
-            The keys can be 'left', 'right', 'top', 'bottom'. Defaults to None.
-            The values are given in percentage of the image size.
+
+    Raises:
+        RenderError: If the image file does not exist.
     """
     result = str(context["result"])
     paragraph = context["paragraph"]
@@ -36,14 +38,17 @@ def image(
 
     if remove_placeholder:
         paragraph.text = ""
+    
+    width = convert_to_length(width) if width else None
+    height = convert_to_length(height) if height else None
 
     paragraph.add_run().add_picture(result, width=width, height=height)
 
     # Optionally remove the placeholder text
 def table(
     context: dict,
-    first_row=True,
-    remove_placeholder=True,
+    style: str | None = None,
+    remove_placeholder: bool = True,
 ):
     """Insert a table into the document at the location of the placeholder.
 
@@ -61,7 +66,7 @@ def table(
     document = context["document"]
 
     table_data = list(result)
-    table = document.add_table(rows=len(table_data), cols=len(table_data[0]))
+    table = document.add_table(rows=len(table_data), cols=len(table_data[0]), style=style)
 
     for row_idx, row_data in enumerate(table_data):
         row = table.rows[row_idx]
