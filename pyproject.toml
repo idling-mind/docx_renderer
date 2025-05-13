@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "docx_renderer"
 dynamic = ["version"]
-description = "Render ppt like a jupyter notebook"
+description = "Create Microsoft word documents from templates"
 authors = [{ name = "Najeem Muhammed", email = "najeem@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.8"
