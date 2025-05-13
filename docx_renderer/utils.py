@@ -1,12 +1,12 @@
 from docx.shared import Inches, Pt, Cm, Mm, Length
 
-def para_text_replace(para, find_string, replace_string):
+def container_text_replace(obj, find_string, replace_string):
     """Function to replace text in a paragraph
 
     This function replaces text in a paragraph while respecting the formatting.
 
     Args:
-        para: Paragraph to replace text in.
+        para: Paragraph/cell to replace text in.
         find_string (str): String to find in the paragraph.
         replace_string (str): String to replace the find_string with.
 
@@ -15,11 +15,11 @@ def para_text_replace(para, find_string, replace_string):
     """
     find_string = str(find_string)
     replace_string = str(replace_string)
-    starting_pos = para.text.find(find_string)
+    starting_pos = obj.text.find(find_string)
     if starting_pos == -1:
         return  # text not in paragraph
     txt_prev = ""
-    for run in para.runs:
+    for run in obj.runs:
         if len(txt_prev) <= starting_pos < len(txt_prev) + len(run.text):
             if run.text.find(find_string) != -1:  # text in run, replace
                 run.text = run.text.replace(find_string, replace_string)

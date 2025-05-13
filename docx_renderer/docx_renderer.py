@@ -7,9 +7,11 @@ from warnings import warn as warning
 from functools import partial
 
 from docx import Document
+from docx.text.paragraph import Paragraph
+from docx.table import Table
 from . import plugins
 from .exceptions import RenderError
-from .utils import fix_quotes, para_text_replace
+from .utils import fix_quotes, container_text_replace
 
 PLUGINS = [plugins.image, plugins.table]
 
@@ -25,6 +27,7 @@ class DOCXRenderer:
 
     def __init__(self, template_path: Union[str, Path]):
         self.template_path = template_path
+        self.document = Document(str(self.template_path))
         self.plugins = {}
         self.namespace = {}
         for plugin in PLUGINS:
@@ -41,6 +44,59 @@ class DOCXRenderer:
             None
         """
         self.plugins[name] = func
+    
+    def _substitute(self, item, skip_failed: bool = False) -> None:
+        """Substitute the placeholders in the item with the result of evaluating
+        the python statements.
+
+        Args:
+            item: The item to substitute. Can be a Paragraph or Table.
+            skip_failed (bool, optional): Don't raise an error if some of the
+                statements failed to render. Defaults to False.
+        Returns:
+            None
+        """
+        if isinstance(item, Paragraph):
+            matches = re.finditer(r"{{{(.*?)}}}", item.text)
+            for match in matches:
+                parts = match.group(1).split(":", 1)
+                try:
+                    result = eval(fix_quotes(parts[0]), self.namespace)
+                except Exception as ex:
+                    if skip_failed:
+                        continue
+                    raise RenderError(f"Failed to evaluate '{parts[0]}'.") from ex
+                if len(parts) > 1:
+                    namespace = self.namespace.copy()
+                    context = {
+                        "result": result,
+                        "paragraph": item,
+                        "document": self.document,
+                    }
+                    for plugin_name, plugin in self.plugins.items():
+                        func = partial(plugin, context)
+                        namespace[plugin_name] = func 
+                    try:
+                        exec(fix_quotes(parts[1]), namespace)
+                    except Exception as ex:
+                        if skip_failed:
+                            warning(
+                                f"Failed to render {parts[0]}"
+                            )
+                            return
+                        raise RenderError(
+                            f"Failed to render {parts[0]}"
+                        ) from ex
+                else:
+                    container_text_replace(item, match.group(0), str(result))
+        elif isinstance(item, Table):
+            for row in item.rows:
+                for cell in row.cells:
+                    for para in cell.paragraphs:
+                        self._substitute(para, skip_failed)
+        else:
+            return
+        
 
     def render(
         self,
@@ -60,47 +116,19 @@ class DOCXRenderer:
         Returns:
             None
         """
-        self.template_path = str(self.template_path)
         if not Path(self.template_path).exists():
             raise FileNotFoundError(f"{self.template_path} not found")
 
-        document = Document(self.template_path)
         if not methods_and_params:
             methods_and_params = {}
         self.namespace.update(methods_and_params)
 
-        for paragraph in document.paragraphs:
-            matches = re.finditer(r"{{{(.*?)}}}", paragraph.text)
-            for match in matches:
-                parts = match.group(1).split(":", 1)
-                try:
-                    result = eval(fix_quotes(parts[0]), self.namespace)
-                except Exception as ex:
-                    if skip_failed:
-                        continue
-                    raise RenderError(f"Failed to evaluate '{parts[0]}'.") from ex
-                if len(parts) > 1:
-                    namespace = self.namespace.copy()
-                    context = {
-                        "result": result,
-                        "paragraph": paragraph,
-                        "document": document,
-                    }
-                    for plugin_name, plugin in self.plugins.items():
-                        func = partial(plugin, context)
-                        namespace[plugin_name] = func 
-                    try:
-                        exec(fix_quotes(parts[1]), namespace)
-                    except Exception as ex:
-                        if skip_failed:
-                            warning(
-                                f"Failed to render {parts[0]}"
-                            )
-                            return
-                        raise RenderError(
-                            f"Failed to render {parts[0]}"
-                        ) from ex
-                else:
-                    para_text_replace(paragraph, match.group(0), str(result))
+        for section in self.document.sections:
+            for para in section.header.iter_inner_content():
+                self._substitute(para, skip_failed)
+            for para in section.footer.iter_inner_content():
+                self._substitute(para, skip_failed)
+            for item in section.iter_inner_content():
+                self._substitute(item, skip_failed)
 
-        document.save(output_path)
+        self.document.save(output_path)

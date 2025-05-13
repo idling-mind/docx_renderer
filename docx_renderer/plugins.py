@@ -30,19 +30,19 @@ def image(
         RenderError: If the image file does not exist.
     """
     result = str(context["result"])
-    paragraph = context["paragraph"]
+    container = context["paragraph"]
     document = context["document"]
 
     if not Path(result).exists():
         raise RenderError(f"Image '{result}' not found.")
 
     if remove_placeholder:
-        paragraph.text = ""
+        container.text = ""
     
     width = convert_to_length(width) if width else None
     height = convert_to_length(height) if height else None
 
-    paragraph.add_run().add_picture(result, width=width, height=height)
+    container.add_run().add_picture(result, width=width, height=height)
 
     # Optionally remove the placeholder text
 def table(
@@ -62,7 +62,7 @@ def table(
             Defaults to True.
     """
     result = context["result"]
-    paragraph = context["paragraph"]
+    container = context["container"]
     document = context["document"]
 
     table_data = list(result)
@@ -72,9 +72,9 @@ def table(
         row = table.rows[row_idx]
         for col_idx, cell_data in enumerate(row_data):
             row.cells[col_idx].text = str(cell_data)
-    tbl, p = table._tbl, paragraph._p
+    tbl, p = table._tbl, container._p
     p.addnext(tbl)
 
     # Optionally remove the placeholder text
     if remove_placeholder:
-        paragraph.text = ""
+        container.text = ""
