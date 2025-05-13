@@ -62,7 +62,7 @@ def table(
             Defaults to True.
     """
     result = context["result"]
-    container = context["container"]
+    paragraph = context["paragraph"]
     document = context["document"]
 
     table_data = list(result)
@@ -72,9 +72,9 @@ def table(
         row = table.rows[row_idx]
         for col_idx, cell_data in enumerate(row_data):
             row.cells[col_idx].text = str(cell_data)
-    tbl, p = table._tbl, container._p
+    tbl, p = table._tbl, paragraph._p
     p.addnext(tbl)
 
     # Optionally remove the placeholder text
     if remove_placeholder:
-        container.text = ""
+        paragraph.text = ""

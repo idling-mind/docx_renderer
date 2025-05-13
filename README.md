@@ -90,3 +90,11 @@ For example: `{{{[["col1", "col2", "col3"],[1, 2, 3]]:table()}}}` will render to
 |col1 | col2 | col3|
 |-----|------|-----|
 |1    |2     |3    |
+
+You can create nested tables as well (if you put a variable placeholder inside
+an existing table which evaluates to a list of lists with `:table()` plugin)
+
+### Hyperlinks
+You can use placeholders with hyperlinks. These hyperlinks inturn can contain other
+placeholders which should evaluate to an external link. Please note that target
+placeholders dont support any plugins.

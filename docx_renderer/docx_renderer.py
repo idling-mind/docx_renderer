@@ -8,7 +8,9 @@ from functools import partial
 
 from docx import Document
 from docx.text.paragraph import Paragraph
+from docx.text.hyperlink import Hyperlink
 from docx.table import Table
+from docx.oxml.ns import qn
 from . import plugins
 from .exceptions import RenderError
 from .utils import fix_quotes, container_text_replace
@@ -56,7 +58,8 @@ class DOCXRenderer:
         Returns:
             None
         """
-        if isinstance(item, Paragraph):
+        if isinstance(item, Paragraph) or isinstance(item, Hyperlink):
+            # Hyperlinks are treated like paragraphs
             matches = re.finditer(r"{{{(.*?)}}}", item.text)
             for match in matches:
                 parts = match.group(1).split(":", 1)
@@ -89,6 +92,10 @@ class DOCXRenderer:
                         ) from ex
                 else:
                     container_text_replace(item, match.group(0), str(result))
+            if isinstance(item, Paragraph):
+                for hyperlink in item.hyperlinks:
+                    self._substitute(hyperlink, skip_failed)
+
         elif isinstance(item, Table):
             for row in item.rows:
                 for cell in row.cells:
@@ -130,5 +137,18 @@ class DOCXRenderer:
                 self._substitute(para, skip_failed)
             for item in section.iter_inner_content():
                 self._substitute(item, skip_failed)
+        
+        for rel in self.document.part.rels.values():
+            matches = re.finditer(r"%7b%7b%7b(.*?)%7d%7d%7d", rel.target_ref)
+            for match in matches:
+                matched_text = match.group(1)
+                try:
+                    result = eval(fix_quotes(matched_text), self.namespace)
+                except Exception as ex:
+                    if skip_failed:
+                        continue
+                    raise RenderError(f"Failed to evaluate '{rel.target_ref}'.") from ex
+                if rel.is_external:
+                    rel._target = rel.target_ref.replace(match.group(0), str(result))
 
         self.document.save(output_path)
