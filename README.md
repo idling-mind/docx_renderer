@@ -65,7 +65,7 @@ docx-renderer input_template.docx output_file.docx
 
 ## Placeholders
 You can have placeholders for text, images, or tables. Placeholders can be added
-inside paragraphs or tables. All placeholders should be enclosed within a pair
+as regular text. All placeholders should be enclosed within a pair
 of triple braces (`{{{` and `}}}`).
 
 ### Text
@@ -90,19 +90,3 @@ For example: `{{{[["col1", "col2", "col3"],[1, 2, 3]]:table()}}}` will render to
 |col1 | col2 | col3|
 |-----|------|-----|
 |1    |2     |3    |
-
-## Code in comments
-You can write regular Python code in the comments section of the document but enclosed between
-`` ```python `` and `` ``` ``.
-
-For example: Add the following in a comment in the document.
-
-<pre lang="python">
-```python
-import numpy as np
-myarr = np.array([[1, 2], [3, 4]])
-```
-</pre>
-
-And in the document, add the text `{{{myarr:table()}}}`
-and a paragraph with the text `The determinant of the array is {{{np.linalg.det(myarr)}}}`.
