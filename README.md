@@ -43,17 +43,6 @@ This will replace placeholders in the template document with the provided values
 You can define some functions within the document itself by writing Python code in
 the comments section. The variables and functions in this code can be used in the main document.
 
-For example: write the following in one of the comments in the document.
-
-<pre>
-```python
-def myfunc(input):
-    return input * 42
-```
-</pre>
-
-Now you can, for example, add the placeholder `{{{myfunc(42)}}}` in your document.
-
 If the template document is a self-contained Python script (i.e., it does not require
 variable values and function definitions to be passed from outside), you can
 generate the output document directly from the command line using the following
