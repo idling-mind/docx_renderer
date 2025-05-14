@@ -40,9 +40,6 @@ This will replace placeholders in the template document with the provided values
 
 ![After](./docs/_src/_static/after.png)
 
-You can define some functions within the document itself by writing Python code in
-the comments section. The variables and functions in this code can be used in the main document.
-
 If the template document is a self-contained Python script (i.e., it does not require
 variable values and function definitions to be passed from outside), you can
 generate the output document directly from the command line using the following
